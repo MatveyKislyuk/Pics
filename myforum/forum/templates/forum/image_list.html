@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="mb-4">Список изображений</h2>
+
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <form method="GET" action="{% url 'image_list' %}">
+          <div class="input-group">
+            <select class="custom-select" id="tagFilter1" name="tag1">
+              <option value="" selected>Выберите первый тег</option>
+              {% for tag in all_tags %}
+                <option value="{{ tag.name }}" {% if tag.name == selected_tags.0 %}selected{% endif %}>{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+
+            <select class="custom-select ml-2" id="tagFilter2" name="tag2">
+              <option value="" selected>Выберите второй тег</option>
+              {% for tag in all_tags %}
+                <option value="{{ tag.name }}" {% if tag.name == selected_tags.1 %}selected{% endif %}>{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-primary">Фильтр</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="row">
+      {% for image in images %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 border-primary">
+            <img class="card-img-top" src="{{ image.image.url }}" alt="{{ image.title }}" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+              <h5 class="card-title">{{ image.title }}</h5>
+              <p class="card-text" id="tagsContainer_{{ image.id }}">Теги: {% for tag in image.tags.all %}{{ tag.name }} {% endfor %}</p>
+              <form method="POST" action="{% url 'add_tag_to_image' image.id %}" class="mb-2" id="addTagForm_{{ image.id }}">
+                {% csrf_token %}
+                <label for="new_tag">Добавить тег:</label>
+                <input type="text" name="new_tag" id="new_tag" class="form-control" placeholder="Введите новый тег">
+
+                <select name="remove_tag" class="form-control mt-2">
+                  <option value="" selected>Выберите тег для удаления</option>
+                  {% for tag in image.tags.all %}
+                    <option value="{{ tag.name }}">{{ tag.name }}</option>
+                  {% endfor %}
+                </select>
+
+                <button type="button" class="btn btn-success btn-sm mt-2" onclick="addTag({{ image.id }})">Добавить тег</button>
+                <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeTag({{ image.id }})">Удалить тег</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    function addTag(imageId) {
+      var form = document.getElementById('addTagForm_' + imageId);
+      var formData = new FormData(form);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', form.action, true);
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          handleResponse(imageId, xhr.responseText);
+          reloadPage();  // Обновляем содержимое страницы
+        }
+      };
+      xhr.send(formData);
+    }
+
+    function removeTag(imageId) {
+      var form = document.getElementById('addTagForm_' + imageId);
+      var formData = new FormData(form);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', form.action, true);
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          handleResponse(imageId, xhr.responseText);
+          reloadPage();  // Обновляем содержимое страницы
+        }
+      };
+      xhr.send(formData);
+    }
+
+    function handleResponse(imageId, responseText) {
+      var response = JSON.parse(responseText);
+      if (response.success) {
+        var tagsContainer = document.getElementById('tagsContainer_' + imageId);
+        tagsContainer.innerHTML = "Теги: " + response.updated_tags;
+      } else {
+        console.error(response.error);
+      }
+    }
+
+    function reloadPage() {
+      location.reload();  // Обновляем страницу после успешного выполнения операции
+    }
+  </script>
+{% endblock %}

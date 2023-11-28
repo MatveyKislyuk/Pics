@@ -1,0 +1,12 @@
+<!-- myforum/forum/templates/forum/add_tag_to_image.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Add Tag to {{ image.title }}</h2>
+  <form method="post" action="{% url 'add_tag_to_image' image.id %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add Tag</button>
+  </form>
+{% endblock %}

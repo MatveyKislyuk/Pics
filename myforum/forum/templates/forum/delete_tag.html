@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card">
+      <div class="card-header text-white" style="background-color: #4e687e">
+        <h2>Удалить тег</h2>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="tagToDelete">Выберите тег для удаления:</label>
+            <select class="custom-select" id="tagToDelete" name="tagToDelete">
+              <option value="" selected disabled>Выберите тег</option>
+              {% for tag in all_tags %}
+                <option value="{{ tag.name }}">{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-danger">Удалить тег</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
